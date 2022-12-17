@@ -3,7 +3,7 @@ const morgan = require('morgan')
 
 const app = express()
 
-const products = [
+let products = [
     {
         id: 1,
         name: "laptop",
@@ -23,16 +23,10 @@ app.post('/products', (req,res)=>{
     res.send(newProducts)
 })
 
-app.put('/products', (req,res)=>{
-    res.send('Actualizando productos')
-})
+app.put('/products/:id', (req,res)=>{
 
-app.delete('/products', (req,res)=>{
-    res.send('Eliminando productos')
-})
+    const newData = req.body
 
-app.get('/products/:id', (req,res)=>{
-    console.log(req.params.id)
     const productFound = products.find((product)=>{
         return product.id === parseInt(req.params.id)
     })
@@ -41,8 +35,38 @@ app.get('/products/:id', (req,res)=>{
         message: 'Product not found'
     })
 
-    console.log(productFound)
-    res.send('Obteniendo un producto')
+    products = products.map((p)=> p.id === parseInt(req.params.id) ? {...p, ...newData} : p)
+
+    res.send({
+        message: "product updated successfully"
+    })
+})
+
+app.delete('/products/:id', (req,res)=>{
+    const productFound = products.find((product)=>{
+        return product.id === parseInt(req.params.id)
+    })
+
+    if (!productFound) return res.status(404).json({
+        message: 'Product not found'
+    })
+
+    products = products.filter((p)=> p.id !== parseInt(req.params.id))
+    console.log(products)
+
+    res.sendStatus(204)
+})
+
+app.get('/products/:id', (req,res)=>{
+    const productFound = products.find((product)=>{
+        return product.id === parseInt(req.params.id)
+    })
+
+    if (!productFound) return res.status(404).json({
+        message: 'Product not found'
+    })
+
+    res.json(productFound)
 })
 
 app.listen(3000)
